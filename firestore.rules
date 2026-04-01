@@ -1,0 +1,94 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: /users/{uid}
+    // Document ID: {uid}
+    // Fields:
+    //   - uid: string (required, immutable) - The user's UID
+    //   - displayName: string (optional) - The user's display name
+    //   - email: string (required, immutable) - The user's email address
+    //   - photoURL: string (optional) - URL to the user's profile picture
+    //   - createdAt: timestamp (required, immutable) - When the profile was created
+    //
+    // Collection: /users/{uid}/captured/{pokemonId}
+    // Document ID: {pokemonId}
+    // Fields:
+    //   - pokemonId: number (required, immutable) - The ID of the captured Pokemon (1-151)
+    //   - capturedAt: timestamp (required, immutable) - When the Pokemon was captured
+    //   - userId: string (required, immutable) - The UID of the user who captured the Pokemon
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasOnlyAllowedFields(['uid', 'displayName', 'email', 'photoURL', 'createdAt']) &&
+             data.uid is string && data.uid.size() > 0 &&
+             data.email is string && data.email.size() > 0 &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidCapturedPokemon(data) {
+      return hasOnlyAllowedFields(['pokemonId', 'capturedAt', 'userId']) &&
+             data.pokemonId is number && data.pokemonId >= 1 && data.pokemonId <= 151 &&
+             data.capturedAt is timestamp &&
+             data.userId is string && data.userId == request.auth.uid;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{uid} {
+      // Users can only read and write their own profile
+      allow read, delete: if isOwner(uid);
+      allow create: if isOwner(uid) && isValidUser(request.resource.data);
+      allow update: if isOwner(uid) && isValidUser(request.resource.data) && 
+                      areImmutableFieldsUnchanged(['uid', 'email', 'createdAt']);
+
+      match /captured/{pokemonId} {
+        // Users can only read and write their own captured list
+        allow read, delete: if isOwner(uid);
+        allow create: if isOwner(uid) && isValidCapturedPokemon(request.resource.data);
+        allow update: if isOwner(uid) && isValidCapturedPokemon(request.resource.data) &&
+                        areImmutableFieldsUnchanged(['pokemonId', 'capturedAt', 'userId']);
+      }
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

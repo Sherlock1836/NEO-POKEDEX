@@ -1,0 +1,66 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores user-specific metadata and settings.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The unique identifier for the user (Firebase Auth UID)."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "photoURL": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the user's profile picture."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the profile was created."
+        }
+      },
+      "required": ["uid", "email", "createdAt"]
+    },
+    "CapturedPokemon": {
+      "title": "Captured Pokemon",
+      "description": "Represents a Pokemon captured by a user.",
+      "type": "object",
+      "properties": {
+        "pokemonId": {
+          "type": "integer",
+          "description": "The ID of the captured Pokemon (1-151)."
+        },
+        "capturedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the Pokemon was captured."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who captured the Pokemon."
+        }
+      },
+      "required": ["pokemonId", "capturedAt", "userId"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "UserProfile",
+      "description": "User profile documents indexed by UID."
+    },
+    "/users/{uid}/captured/{pokemonId}": {
+      "schema": "CapturedPokemon",
+      "description": "Subcollection of captured Pokemon for each user."
+    }
+  }
+}
