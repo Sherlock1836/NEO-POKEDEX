@@ -10,12 +10,19 @@ export const usePokemonList = () => {
       const response = await fetch(`${BASE_URL}/pokemon?limit=151`);
       const data: PokemonListResponse = await response.json();
       
-      const detailedPokemon = await Promise.all(
-        data.results.map(async (p) => {
-          const res = await fetch(p.url);
-          return res.json();
-        })
-      );
+      const detailedPokemon: Pokemon[] = [];
+      // Chunk requests to avoid 429 Too Many Requests
+      const chunkSize = 10;
+      for (let i = 0; i < data.results.length; i += chunkSize) {
+        const chunk = data.results.slice(i, i + chunkSize);
+        const chunkResults = await Promise.all(
+          chunk.map(async (p) => {
+            const res = await fetch(p.url);
+            return res.json();
+          })
+        );
+        detailedPokemon.push(...chunkResults);
+      }
       
       return detailedPokemon;
     },

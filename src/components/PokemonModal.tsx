@@ -81,6 +81,13 @@ export function PokemonModal() {
                       alt={pokemon.name}
                       className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_20px_rgba(0,243,255,0.3)]"
                       referrerPolicy="no-referrer"
+                      loading="lazy"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        if (target.src !== pokemon.sprites.front_default) {
+                          target.src = pokemon.sprites.front_default;
+                        }
+                      }}
                     />
                   </div>
 

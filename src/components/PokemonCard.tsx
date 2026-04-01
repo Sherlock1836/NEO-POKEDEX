@@ -84,6 +84,13 @@ export function PokemonCard({ pokemon, index }: PokemonCardProps) {
           alt={pokemon.name}
           className="w-full h-full object-contain drop-shadow-2xl"
           referrerPolicy="no-referrer"
+          loading="lazy"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            if (target.src !== pokemon.sprites.front_default) {
+              target.src = pokemon.sprites.front_default;
+            }
+          }}
         />
       </div>
 
