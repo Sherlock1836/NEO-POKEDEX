@@ -1,0 +1,5 @@
+{
+  "name": "Neo-Pokedex",
+  "description": "A futuristic, glassmorphic Pokedex featuring the original 151 Pokemon with real-time capture tracking.",
+  "requestFramePermissions": []
+}
