@@ -7,12 +7,13 @@ export const usePokemonList = () => {
   return useQuery({
     queryKey: ['pokemon-list'],
     queryFn: async (): Promise<Pokemon[]> => {
-      const response = await fetch(`${BASE_URL}/pokemon?limit=151`);
+      const response = await fetch(`${BASE_URL}/pokemon?limit=100000`);
       const data: PokemonListResponse = await response.json();
       
       const detailedPokemon: Pokemon[] = [];
       // Chunk requests to avoid 429 Too Many Requests
-      const chunkSize = 10;
+      // Increased chunk size to 50 to handle the larger dataset faster
+      const chunkSize = 50;
       for (let i = 0; i < data.results.length; i += chunkSize) {
         const chunk = data.results.slice(i, i + chunkSize);
         const chunkResults = await Promise.all(
