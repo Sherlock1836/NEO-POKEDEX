@@ -3,7 +3,32 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
+    <title>Neo Pokedex</title>
+    <link id="app-favicon" rel="icon" type="image/png" href="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" />
+    <script>
+      // Cache the favicon in localStorage to prevent unnecessary network requests
+      (async () => {
+        const cacheKey = 'pokedex-favicon-v1';
+        const cached = localStorage.getItem(cacheKey);
+        const link = document.getElementById('app-favicon');
+        if (cached) {
+          link.href = cached;
+        } else {
+          try {
+            const res = await fetch(link.href);
+            const blob = await res.blob();
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              localStorage.setItem(cacheKey, reader.result);
+              link.href = reader.result;
+            };
+            reader.readAsDataURL(blob);
+          } catch (err) {
+            console.warn('Favicon caching failed', err);
+          }
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
